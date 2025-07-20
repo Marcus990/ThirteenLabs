@@ -1,228 +1,174 @@
-# 🚀 ThirteenLabs - AI Video to Interactive 3D Experience Converter
+# 🚀 ThirteenLabs — From Video to Interactive 3D Scene
 
-Transform any video into an interactive 3D experience using advanced AI technology. Upload a video and watch it become a live, moving 3D model you can explore in real time.
+Transform any video into a live, animated 3D model using advanced AI — all in real-time, fully automated, and playable in the browser.
 
-![ThirteenLabs Demo](https://youtu.be/i_b2p0VrURA)
+Demo:
+[YouTube](https://youtu.be/i_b2p0VrURA)
 
-## ✨ Features
+---
 
-- **🎥 Video Analysis**: Advanced AI analyzes your video to identify objects and actions
-- **🎨 3D Reconstruction**: AI creates detailed 3D models from video content
-- **🎮 Interactive Experience**: Instantly generate interactive 3D experiences with real-time rendering
-- **⚡ Real-time Processing**: Fast processing pipeline with progress tracking
-- **🎯 Professional Quality**: High-quality 3D rendering with modern graphics
+## 🎯 What is ThirteenLabs?
+
+**ThirteenLabs** lets you upload a video and instantly experience it as a live 3D simulation — including object reconstruction, motion animation, and spatial interactivity.
+
+Built for creators, engineers, educators, and game developers, this tool transforms video content into real-time game-ready 3D models, animated using natural language understanding and AI-generated Three.js code.
+
+---
+
+## ✨ Key Features
+
+- 📹 **Video → 3D Pipeline**: Automatically converts a short video into a full 3D scene
+- 🧠 **AI-Powered Object & Motion Extraction**: Identifies geometry, material, size, and dynamic movement
+- 🎨 **Real-Time Three.js Rendering**: View and interact with the scene in-browser
+- 🎮 **Playable Animation**: Includes flying, falling, rotation, and object transformation
+- 🔄 **Modular Code Generation**: Outputs clean, reusable Three.js code for integration
+- 💡 **No Manual 3D Work Needed**: End-to-end experience, from upload to scene
+
+---
 
 ## 🛠 Tech Stack
 
-### Backend
-- **FastAPI** - Modern Python web framework
-- **Celery** - Asynchronous task processing
-- **Redis** - Message broker and caching
-- **MoviePy** - Video processing and metadata extraction
-- **OpenAI GPT-4o/3** - AI model generation
-- **Twelve Labs API** - Video intelligence
-- **FFmpeg** - Video frame extraction
-- **OpenSCAD** - 3D model generation
-- **Blender** - 3D model conversion
+### 🌐 Frontend
+- **Next.js** — Fullstack React framework
+- **Three.js** — 3D rendering and animation
+- **Tailwind CSS** — UI styling
+- **Framer Motion** — Animations
+- **ShadCN / Lucide** — UI Components
 
-### Frontend
-- **Next.js** - React framework with SSR
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
-- **Three.js** - 3D graphics library
-- **Lucide React** - Beautiful icons
+### 🧠 Backend
+- **FastAPI** — REST API server
+- **Twelve Labs API** — Video intelligence (motion + object detection)
+- **Gemini / GPT-4o** — 3D model & animation code generation
+- **FFmpeg** — Video preprocessing and frame slicing
 
-## 🚀 Quick Start
+---
+
+## ⚙️ How It Works
+
+1. **Upload a video** via the frontend
+2. **Twelve Labs** analyzes object attributes and motion (position, speed, orientation)
+3. **Gemini** generates spatial-aware object + motion description
+4. Gemini returns **modular Three.js code** with animation tracks
+5. Your browser renders the 3D scene instantly — with interaction
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Python 3.8+** and **Node.js 16+**
-- **Redis** server running
-- **API Keys**: Twelve Labs and OpenAI
+- **Python 3.8+**
+- **Node.js 16+**
+- API keys for:
+  - [Twelve Labs](https://docs.twelvelabs.io/)
+  - [Gemini](https://ai.google.dev) or OpenAI
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd Thirteen-Labs-1
+git clone https://github.com/your-username/thirteenlabs.git
+cd thirteenlabs
 ```
 
-### 2. Start the Backend
+### 2. Backend Setup
 
 ```bash
 cd backend
-./start.sh
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
 ```
 
-The backend will be available at: http://localhost:8000
-
-### 3. Start the Frontend
+### 3. Frontend Setup
 
 ```bash
 cd frontend
-./start.sh
+npm install
+npm run dev
 ```
 
-The frontend will be available at: http://localhost:3000
+Open your browser at [http://localhost:3000](http://localhost:3000)
 
-### 4. Configure API Keys
+---
 
-Edit the `.env` file in the backend directory:
+## 🔐 .env Configuration
 
-```bash
-# Backend .env
+Create a `.env` file in `backend/`:
+
+```env
 TWELVE_LABS_API_KEY=your_twelve_labs_key
-OPENAI_API_KEY=your_openai_key
+OPENAI_API_KEY=your_openai_or_gemini_key
 ```
 
-## 📋 Video Requirements
-
-- **Duration**: 4 seconds to 10 minutes
-- **Format**: MP4 and MOV files
-- **Size**: Maximum 500MB
-- **Content**: Clear main object visible throughout the video
-
-## 🎮 How It Works
-
-1. **Upload Video** - Upload your MP4 or MOV video through the web interface
-2. **AI Analysis** - Twelve Labs AI analyzes the video content
-3. **3D Generation** - GPT models generate Three.js code for 3D objects
-4. **Model Creation** - Interactive 3D experience is generated with real-time controls
-5. **Explore** - Enjoy your custom interactive 3D experience!
+---
 
 ## 🏗 Project Structure
 
 ```
-Thirteen-Labs-1/
+thirteenlabs/
 ├── backend/
-│   ├── main.py                 # FastAPI server
-│   ├── tasks/                  # Celery tasks
-│   ├── utils/                  # Utility modules
-│   ├── uploads/                # Video storage
-│   ├── start.sh               # Backend startup script
-│   └── requirements.txt       # Python dependencies
+│   ├── main.py             # FastAPI app
+│   ├── video_processing/   # FFmpeg and Twelve Labs utils
+│   ├── ai_generation/      # Gemini or OpenAI 3D model logic
+│   └── .env                # API keys
 ├── frontend/
-│   ├── pages/                 # Next.js pages
-│   ├── components/            # React components
-│   ├── lib/                   # Utility functions
-│   ├── start.sh              # Frontend startup script
-│   └── package.json          # Node.js dependencies
+│   ├── pages/              # Next.js routes
+│   ├── components/         # React + Three.js views
+│   └── public/demo-assets/ # Images for README
 └── README.md
 ```
 
-## 🔧 Development
+---
 
-### Backend Development
+## 📋 Video Requirements
 
-```bash
-cd backend
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start development server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Frontend Development
-
-```bash
-cd frontend
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-### Celery Worker
-
-```bash
-cd backend
-# Start Celery worker
-celery -A celery_worker worker --loglevel=info
-```
-
-## 🐳 Docker Deployment
-
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-```
-
-## 📊 API Endpoints
-
-- `POST /upload_video` - Upload and validate video
-- `GET /status/{job_id}` - Check processing status
-- `GET /game/{job_id}` - Get generated game
-- `GET /health` - Health check
-
-## 🎮 Customization
-
-### Styling
-The frontend uses Tailwind CSS with a custom color scheme:
-- Primary: Purple (`#8b5cf6`) to Pink (`#ec4899`)
-- Background: Dark slate gradient
-- Accents: Purple and pink gradients
-
-### 3D Rendering
-The 3D viewer uses Three.js with:
-- Enhanced lighting and shadows
-- Tone mapping for realistic rendering
-- Animated models and environments
-- Responsive controls
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-**Redis Connection Error**
-```bash
-# Start Redis
-brew services start redis  # macOS
-sudo systemctl start redis  # Ubuntu
-```
-
-**Port Already in Use**
-```bash
-# Find and kill process
-lsof -i :8000
-kill -9 <PID>
-```
-
-**Dependencies Issues**
-```bash
-# Backend
-rm -rf venv/
-./start.sh
-
-# Frontend
-rm -rf node_modules/
-npm install
-```
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📞 Support
-
-For support and questions:
-- Create an issue on GitHub
-- Check the troubleshooting section
-- Review the API documentation at http://localhost:8000/docs
+| Property      | Requirement             |
+|---------------|--------------------------|
+| Duration      | 4–10 seconds             |
+| Format        | MP4 or MOV               |
+| Size          | ≤ 500MB                  |
+| Subject       | Clearly visible in frame |
 
 ---
 
-**Built with ❤️ by ThirteenLabs Team**
+## 💡 Example Use Cases
+
+- 🔬 Visualize product demos in 3D from videos
+- 🧱 Automatically create assets for indie game developers
+- 📘 Turn educational videos into spatial learning tools
+- 🎞️ Create interactive 3D versions of real-life actions
+- 🛠 Prototype 3D motion concepts without Blender
+
+---
+
+## 🧪 Tips for Clean Results
+
+- Keep the camera stable
+- Ensure good lighting and visibility
+- Record one main object in the frame
+- Include full range of motion (e.g. if it rotates or falls)
+
+---
+
+## 🧠 Future Roadmap
+
+- 🔁 Scene multi-object support
+- 📐 Advanced spatial layout and perspective correction
+- 🕹️ Game controller overlay
+- 🎤 Prompt-guided AI edits (“make it fly higher”)
+- 🌐 Export as GLTF or embed in your site
+
+---
+
+## 📝 License
+
+MIT License © 2025 ThirteenLabs
+
+---
+
+## 🙌 Credits
+
+Built by the **ThirteenLabs** team at [DevPost](https://devpost.com/software/video-3d-game-by-thirteen-labs)  
+
+---
