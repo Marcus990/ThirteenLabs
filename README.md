@@ -1,4 +1,4 @@
-# 🚀 ThirteenLabs — From Video to Interactive 3D Scene
+# 🚀 Thirteen Labs — From Video ➡️ Interactive 3D Scene
 
 Transform any video into a live, animated 3D model using advanced AI — all in real-time, fully automated, and playable in the browser.
 
