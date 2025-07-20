@@ -39,9 +39,13 @@ class TwelveLabsAPI:
         
         # Prepare the multipart form data
         with open(video_path, "rb") as video_file:
+            # Determine MIME type based on file extension
+            file_extension = Path(video_path).suffix.lower()
+            mime_type = "video/quicktime" if file_extension == ".mov" else "video/mp4"
+            
             files = {
                 "index_id": (None, self.index_id),
-                "video_file": (Path(video_path).name, video_file, "video/mp4"),
+                "video_file": (Path(video_path).name, video_file, mime_type),
             }
             
             async with httpx.AsyncClient() as client:

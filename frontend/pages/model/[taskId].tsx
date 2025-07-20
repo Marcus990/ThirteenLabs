@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { Menu, ArrowLeft, Play, Download, Share2, Settings } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import ThreeJSRenderer from '../../components/ThreeJSRenderer';
+import Logo from '../../components/Logo';
 import { getModelEntry, generate3DModel, ModelEntry } from '../../lib/api';
 
 export default function ModelPage() {
@@ -63,8 +64,34 @@ export default function ModelPage() {
         </div>
         <div className="flex-1 ml-80 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading 3D model...</p>
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              {/* Spinner Ring Background */}
+              <div className="absolute inset-0 rounded-full border-4 border-purple-200/20" />
+              
+              {/* Spinner Ring Animated Top Segment */}
+              <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 border-transparent animate-spin" />
+              
+              {/* Center Icon */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  {/* 3D Cube Icon */}
+                  <div className="w-4 h-4 relative">
+                    {/* Cube faces */}
+                    <div className="absolute inset-0 transform rotate-45">
+                      {/* Front face */}
+                      <div className="absolute inset-0 bg-white rounded-sm"></div>
+                      
+                      {/* Right face */}
+                      <div className="absolute inset-0 bg-white bg-opacity-80 rounded-sm transform rotate-y-45 origin-left"></div>
+                      
+                      {/* Top face */}
+                      <div className="absolute inset-0 bg-white bg-opacity-60 rounded-sm transform rotate-x-45 origin-bottom"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="text-gray-400">Loading 3D experience...</p>
           </div>
         </div>
       </div>
@@ -95,8 +122,8 @@ export default function ModelPage() {
   return (
     <>
       <Head>
-        <title>3D Model - ThirteenLabs</title>
-        <meta name="description" content="View and interact with your 3D model" />
+        <title>3D Experience - ThirteenLabs</title>
+        <meta name="description" content="View and interact with your 3D experience" />
       </Head>
 
       <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -125,13 +152,7 @@ export default function ModelPage() {
                     <ArrowLeft size={20} className="mr-2" />
                     Back to Results
                   </button>
-                  <div className="flex-shrink-0">
-                    <h1 className="text-2xl font-bold text-white">
-                      <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        ThirteenLabs
-                      </span>
-                    </h1>
-                  </div>
+                  <Logo />
                 </div>
                 <div className="flex items-center space-x-4">
                   <button className="p-2 text-gray-300 hover:text-white transition-colors">
@@ -150,7 +171,7 @@ export default function ModelPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               {/* Model Header */}
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-white mb-4">3D Model</h2>
+                <h2 className="text-3xl font-bold text-white mb-4">3D Experience</h2>
                 <p className="text-gray-300 text-lg">{entry.description}</p>
               </div>
 
@@ -159,11 +180,14 @@ export default function ModelPage() {
                 {entry.threejs_code ? (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-white">Interactive 3D Model</h3>
+                      <h3 className="text-xl font-semibold text-white">Interactive 3D Experience</h3>
                       <div className="flex items-center space-x-4">
-                        <button className="flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                        <button 
+                          onClick={() => window.location.reload()}
+                          className="flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                        >
                           <Play size={16} className="mr-2" />
-                          Play Game
+                          Re-Render Experience
                         </button>
                         <button className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
                           <Download size={16} className="mr-2" />
@@ -183,19 +207,19 @@ export default function ModelPage() {
 
                     {/* Controls Info */}
                     <div className="bg-gray-800/50 rounded-lg p-4">
-                      <h4 className="text-white font-medium mb-2">Controls</h4>
+                      <h4 className="text-white font-medium mb-2">3D Experience Controls</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-300">
                         <div>
-                          <span className="font-medium">WASD:</span> Move
+                          <span className="font-medium">Mouse:</span> Rotate view
                         </div>
                         <div>
-                          <span className="font-medium">Mouse:</span> Look around
+                          <span className="font-medium">Scroll:</span> Zoom in/out
                         </div>
                         <div>
-                          <span className="font-medium">Space:</span> Jump
+                          <span className="font-medium">Right-click:</span> Pan view
                         </div>
                         <div>
-                          <span className="font-medium">Shift:</span> Run
+                          <span className="font-medium">R:</span> Reset camera
                         </div>
                       </div>
                     </div>
@@ -207,7 +231,7 @@ export default function ModelPage() {
                     </div>
                     <h3 className="text-2xl font-bold text-white mb-4">Generate 3D Model</h3>
                     <p className="text-gray-300 mb-8 max-w-md mx-auto">
-                      Create an interactive 3D model from your video analysis. This will generate a playable game environment.
+                      Create an interactive 3D model from your video analysis. This will generate a detailed 3D visualization with motion and spatial awareness.
                     </p>
                     <button
                       onClick={handleGenerate3D}

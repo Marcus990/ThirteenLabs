@@ -18,13 +18,13 @@ export default function VideoUpload({ onUpload }: VideoUploadProps) {
     }
 
     // Check file extension
-    if (!file.name.toLowerCase().endsWith('.mp4')) {
-      return 'Only MP4 files are supported';
+    if (!file.name.toLowerCase().endsWith('.mp4') && !file.name.toLowerCase().endsWith('.mov')) {
+      return 'Only MP4 and MOV files are supported';
     }
 
-    // Check file size (max 100MB for longer videos)
-    if (file.size > 100 * 1024 * 1024) {
-      return 'File size must be less than 100MB';
+    // Check file size (max 500MB for longer videos)
+    if (file.size > 500 * 1024 * 1024) {
+      return 'File size must be less than 500MB';
     }
 
     return null;
@@ -89,7 +89,7 @@ export default function VideoUpload({ onUpload }: VideoUploadProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="video/mp4"
+        accept="video/mp4,video/quicktime"
         onChange={handleFileInput}
         className="hidden"
       />
@@ -118,7 +118,7 @@ export default function VideoUpload({ onUpload }: VideoUploadProps) {
                 Drop your video here, or click to browse
               </h3>
               <p className="text-gray-300 text-lg">
-                MP4 files only, max 100MB
+                MP4 and MOV files only, max 500MB
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function VideoUpload({ onUpload }: VideoUploadProps) {
             className="inline-flex items-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
             <Upload size={24} />
-            <span className="ml-3">Generate 3D Game</span>
+            <span className="ml-3">Create 3D Experience</span>
           </button>
         </div>
       )}
@@ -189,7 +189,7 @@ export default function VideoUpload({ onUpload }: VideoUploadProps) {
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Format</h4>
-                <p className="text-gray-300 text-sm">MP4 files only</p>
+                <p className="text-gray-300 text-sm">MP4 and MOV files only</p>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function VideoUpload({ onUpload }: VideoUploadProps) {
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Size</h4>
-                <p className="text-gray-300 text-sm">Maximum 100MB</p>
+                <p className="text-gray-300 text-sm">Maximum 500MB</p>
               </div>
             </div>
           </div>

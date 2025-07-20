@@ -83,11 +83,7 @@ const ThreeJSViewer: React.FC<ThreeJSViewerProps> = ({ threejsCode }) => {
           }
         } catch (error) {
           console.error('Error executing Three.js code:', error);
-          // Create a fallback cube
-          const geometry = new THREE.BoxGeometry();
-          const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-          const cube = new THREE.Mesh(geometry, material);
-          scene.add(cube);
+          // Don't create fallback cubes - just log the error
         }
         `
       );
@@ -96,11 +92,7 @@ const ThreeJSViewer: React.FC<ThreeJSViewerProps> = ({ threejsCode }) => {
 
     } catch (error) {
       console.error('Error executing Three.js code:', error);
-      // Create a fallback cube
-      const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
+      // Don't create fallback cubes - just log the error
     }
 
     // Animation loop

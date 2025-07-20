@@ -79,7 +79,8 @@ class PipelineProcessor:
                 "screenshots": screenshots,
                 "status": "completed",
                 "video_id": video_id,
-                "task_id": task_id
+                "task_id": task_id,
+                "video_url": f"uploads/{video_path.split('/')[-1]}" if video_path else None
             }
 
             analysis_results[task_id] = result
@@ -254,7 +255,7 @@ class PipelineProcessor:
         }
         payload = {
             "video_id": video_id,
-            "prompt": "You are a 3D model designer. Analyze the main object in this video and describe it in detailed, spatially-aware language. Include information about its geometry, structure, materials, color, size, proportions, and component parts. Describe how these parts connect or relate to each other. Note any textures, curves, or distinct design features. Use clear language that a large language model can convert into 3D geometry using primitives like boxes, cylinders, tubes, or curves. If visible, mention dimensions or relative scale, and whether the object is static or moving in the video.",
+            "prompt": "You are a 3D model designer. Analyze the main object in this video and describe it in detailed, spatially-aware language. Include information about: Its geometry, structure, materials, color, size, proportions, and component parts, How these parts connect or relate to each other (e.g. joints, attachments, relative orientation), Any textures, curves, or distinct design features. Use clear language that a large language model can convert into 3D geometry using primitives like BoxGeometry, CylinderGeometry, TubeGeometry, or CurveGeometry. If visible, include approximate dimensions, relative scale, or contextual size comparisons. Specify whether the object appears static or moving in the video. If the object is in motion, additionally describe: Whether the motion is translation, rotation, falling, wobbling, or bouncing, The direction and speed of movement (e.g. forward 3 meters at a slow rate of speed, upward 45 degrees), The approximate speed or duration of movement (e.g. slow roll, rapid tilt in 2 seconds), Any rotational changes or orientation shifts (e.g. tilting, spinning, tumbling), Whether the motion is continuous, repetitive, oscillating, or a single action, The trajectory or path taken (e.g. linear, curved, circular). Use precise but accessible language so the motion can be interpreted by an AI and applied to dynamic 3D rendering in Three.js.",
             "temperature": 0.2,
             "stream": False
         }

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { Menu, Upload, Play, Zap, Eye, Box } from "lucide-react";
+import { Menu, Upload, Play, Eye, Box, RotateCcw, Globe } from "lucide-react";
 import VideoUpload from "../components/VideoUpload";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Sidebar from "../components/Sidebar";
+import Logo from "../components/Logo";
 import { uploadVideo, pollTaskStatus, StatusResponse } from "../lib/api";
 
 export default function HomePage() {
@@ -23,7 +24,9 @@ export default function HomePage() {
       setProcessingStatus("Uploading video...");
       setUploadProgress(10);
 
-      const uploadResponse = await uploadVideo(file);
+      const uploadResponse = await uploadVideo(file, (progress) => {
+        setUploadProgress(10 + (progress * 0.2)); // Upload takes 20% of total progress
+      });
       setUploadProgress(30);
 
       setProcessingStatus("Processing video with AI...");
@@ -55,10 +58,10 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>ThirteenLabs - AI Video to 3D Game Converter</title>
+        <title>ThirteenLabs - AI Video to Interactive 3D Experience Converter</title>
         <meta
           name="description"
-          content="Transform your videos into playable 3D games with AI"
+          content="Transform any video into an interactive 3D experience with AI-powered analysis and real-time Three.js rendering"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -84,11 +87,7 @@ export default function HomePage() {
                     <Menu size={24} />
                   </button>
                   <div className="flex-shrink-0">
-                    <h1 className="text-2xl font-bold text-white">
-                      <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        ThirteenLabs
-                      </span>
-                    </h1>
+                    <Logo />
                   </div>
                 </div>
               </div>
@@ -102,19 +101,23 @@ export default function HomePage() {
                 <div className="mb-8">
                   <div className="inline-flex items-center px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full text-purple-300 text-sm font-medium mb-6">
                     <div className="mr-2">
-                      <Zap size={16} />
+                      <Box size={16} />
                     </div>
-                    AI-Powered Video to 3D Game Conversion
+                    AI-Powered Video to 3D Experience Conversion
                   </div>
                   <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                    Transform Videos into
+                    Transform Any Video into an
                     <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                      3D Games
+                      Interactive 3D Experience
                     </span>
                   </h2>
-                  <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-                    Upload a video and watch as AI converts it into a fully playable 3D game.
-                    Powered by advanced computer vision and generative AI technology.
+                  <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
+                    Upload a video. Watch it become a live, moving 3D model you can explore in real time.
+                  </p>
+                  <p className="text-lg text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+                    Bring your video footage to life with our AI-powered engine. We analyze your video to detect key objects, 
+                    reconstruct them in 3D using clean Three.js geometry, and animate them just like in your footage — 
+                    all interactively rendered in your browser.
                   </p>
                 </div>
 
@@ -132,28 +135,35 @@ export default function HomePage() {
                   )}
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-20">
+                {/* Value Props */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto mb-20">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Upload size={24} />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Upload</h3>
-                    <p className="text-gray-400">Simple video upload process</p>
+                    <h3 className="text-xl font-bold text-white mb-2">Video In, 3D Out</h3>
+                    <p className="text-gray-400">Just upload a video, and get a fully interactive 3D model</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Eye size={24} />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Analyze</h3>
-                    <p className="text-gray-400">AI analyzes your content</p>
+                    <h3 className="text-xl font-bold text-white mb-2">AI-Powered Understanding</h3>
+                    <p className="text-gray-400">Our system interprets real-world motion, shape, and behavior</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Play size={24} />
+                      <RotateCcw size={24} />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Play</h3>
-                    <p className="text-gray-400">Enjoy your 3D game</p>
+                    <h3 className="text-xl font-bold text-white mb-2">Real-Time Interaction</h3>
+                    <p className="text-gray-400">Rotate, zoom, and explore like a real product viewer</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Globe size={24} />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Web-Native</h3>
+                    <p className="text-gray-400">No downloads, no installs. Works in-browser using Three.js</p>
                   </div>
                 </div>
               </div>
@@ -186,7 +196,7 @@ export default function HomePage() {
                     <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6">
                       <Box size={24} />
                     </div>
-                    <h4 className="text-xl font-semibold text-white mb-4">3D Generation</h4>
+                    <h4 className="text-xl font-semibold text-white mb-4">3D Reconstruction</h4>
                     <p className="text-gray-300 leading-relaxed">
                       AI generates detailed 3D models and environments from your video content automatically.
                     </p>
@@ -196,9 +206,9 @@ export default function HomePage() {
                     <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6">
                       <Play size={24} />
                     </div>
-                    <h4 className="text-xl font-semibold text-white mb-4">Game Creation</h4>
+                    <h4 className="text-xl font-semibold text-white mb-4">Interactive Experience</h4>
                     <p className="text-gray-300 leading-relaxed">
-                      Instantly create interactive 3D games with physics, controls, and gameplay mechanics.
+                      Instantly create interactive 3D experiences with real-time rendering and smooth controls.
                     </p>
                   </div>
                 </div>
@@ -213,7 +223,7 @@ export default function HomePage() {
                     How It Works
                   </h3>
                   <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                    Three simple steps to create your 3D game
+                    Three simple steps to create your interactive 3D experience
                   </p>
                 </div>
 
@@ -224,7 +234,7 @@ export default function HomePage() {
                     </div>
                     <h4 className="text-xl font-semibold text-white mb-4">Upload Video</h4>
                     <p className="text-gray-300 leading-relaxed">
-                      Upload a 4-10 minute MP4 video with a clear main object or scene
+                      Upload a 4-10 minute MP4 or MOV video with a clear main object or scene
                     </p>
                   </div>
 
@@ -234,7 +244,7 @@ export default function HomePage() {
                     </div>
                     <h4 className="text-xl font-semibold text-white mb-4">AI Processing</h4>
                     <p className="text-gray-300 leading-relaxed">
-                      Our AI analyzes the video and generates 3D models and game mechanics
+                      Our AI analyzes the video and generates 3D models with interactive controls
                     </p>
                   </div>
 
@@ -242,9 +252,9 @@ export default function HomePage() {
                     <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                       <span className="text-2xl font-bold text-white">3</span>
                     </div>
-                    <h4 className="text-xl font-semibold text-white mb-4">Play Game</h4>
+                    <h4 className="text-xl font-semibold text-white mb-4">Explore 3D</h4>
                     <p className="text-gray-300 leading-relaxed">
-                      Enjoy your fully interactive 3D game with WASD controls and mouse look
+                      Enjoy your fully interactive 3D experience with mouse controls and real-time rendering
                     </p>
                   </div>
                 </div>
@@ -262,7 +272,7 @@ export default function HomePage() {
                   </span>
                 </h3>
                 <p className="text-gray-300 mb-8 max-w-md mx-auto">
-                  Transforming the future of content creation with AI-powered video to 3D game conversion
+                  Transforming the future of content creation with AI-powered video to interactive 3D experience conversion
                 </p>
                 <div className="flex justify-center space-x-8">
                   <a

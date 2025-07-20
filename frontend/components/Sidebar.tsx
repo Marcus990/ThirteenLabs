@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { 
-  Menu, 
-  X, 
-  History, 
-  Play, 
-  Eye, 
-  Trash2, 
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import {
+  Menu,
+  X,
+  History,
+  Play,
+  Eye,
+  Trash2,
   Calendar,
   FileText,
-  Box
-} from 'lucide-react';
-import { getModelEntries, deleteModelEntry, ModelEntry } from '../lib/api';
+  Box,
+} from "lucide-react";
+import { getModelEntries, deleteModelEntry, ModelEntry } from "../lib/api";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -43,7 +43,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       const response = await getModelEntries();
       setEntries(response.entries);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load entries');
+      setError(err instanceof Error ? err.message : "Failed to load entries");
     } finally {
       setLoading(false);
     }
@@ -55,60 +55,66 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     onClose();
   };
 
-  const handleDeleteEntry = async (entryId: string, event: React.MouseEvent) => {
+  const handleDeleteEntry = async (
+    entryId: string,
+    event: React.MouseEvent
+  ) => {
     event.stopPropagation();
-    
-    if (!confirm('Are you sure you want to delete this generation?')) {
+
+    if (!confirm("Are you sure you want to delete this experience?")) {
       return;
     }
 
     try {
       await deleteModelEntry(entryId);
-      setEntries(entries.filter(entry => entry.id !== entryId));
+      setEntries(entries.filter((entry) => entry.id !== entryId));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete entry');
+      alert(err instanceof Error ? err.message : "Failed to delete entry");
     }
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const truncateDescription = (description: string, maxLength: number = 60) => {
     if (description.length <= maxLength) return description;
-    return description.substring(0, maxLength) + '...';
+    return description.substring(0, maxLength) + "...";
   };
 
   return (
     <>
       {/* Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         fixed top-0 left-0 h-full w-80 bg-slate-900 border-r border-slate-700 z-50
+        flex flex-col
         transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0 lg:relative lg:z-auto
-      `}>
+      `}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <History size={16} />
             </div>
-            <h2 className="text-xl font-bold text-white">My Generations</h2>
+            <h2 className="text-xl font-bold text-white">My Experiences</h2>
           </div>
           <button
             onClick={onClose}
@@ -119,11 +125,37 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {loading ? (
             <div className="p-6 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading generations...</p>
+              <div className="relative w-8 h-8 mx-auto mb-4">
+                {/* Spinner Ring Background */}
+                <div className="absolute inset-0 rounded-full border-2 border-purple-200/20" />
+                
+                {/* Spinner Ring Animated Top Segment */}
+                <div className="absolute inset-0 rounded-full border-2 border-t-purple-500 border-transparent animate-spin" />
+                
+                {/* Center Icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    {/* 3D Cube Icon */}
+                    <div className="w-2 h-2 relative">
+                      {/* Cube faces */}
+                      <div className="absolute inset-0 transform rotate-45">
+                        {/* Front face */}
+                        <div className="absolute inset-0 bg-white rounded-sm"></div>
+                        
+                        {/* Right face */}
+                        <div className="absolute inset-0 bg-white bg-opacity-80 rounded-sm transform rotate-y-45 origin-left"></div>
+                        
+                        {/* Top face */}
+                        <div className="absolute inset-0 bg-white bg-opacity-60 rounded-sm transform rotate-x-45 origin-bottom"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-400">Loading experiences...</p>
             </div>
           ) : error ? (
             <div className="p-6 text-center">
@@ -141,7 +173,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <FileText size={24} />
               </div>
               <p className="text-gray-400 mb-2">No generations yet</p>
-              <p className="text-gray-500 text-sm">Upload a video to create your first 3D game</p>
+              <p className="text-gray-500 text-sm">
+                Upload a video to create your first 3D experience
+              </p>
             </div>
           ) : (
             <div className="p-4 space-y-3">
@@ -166,12 +200,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <button
                       onClick={(e) => handleDeleteEntry(entry.id, e)}
                       className="p-1 text-gray-400 hover:text-red-400 transition-colors ml-2"
-                      title="Delete generation"
+                      title="Delete experience"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 text-xs">
                       <div className="flex items-center text-gray-400">
@@ -185,7 +219,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <div className="mr-1">
                             <Box size={12} />
                           </div>
-                          3D Model
+                          3D Experience
                         </div>
                       )}
                     </div>
@@ -204,4 +238,4 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
     </>
   );
-} 
+}

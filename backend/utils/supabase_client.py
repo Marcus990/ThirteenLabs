@@ -115,6 +115,42 @@ class SupabaseManager:
             raise
     
     @staticmethod
+    async def entry_exists_by_task_id(task_id: str) -> bool:
+        """
+        Check if a model entry exists for a given task_id
+        
+        Args:
+            task_id: TwelveLabs task ID
+            
+        Returns:
+            True if entry exists, False otherwise
+        """
+        try:
+            result = supabase.table("model_entries").select("id").eq("task_id", task_id).execute()
+            return len(result.data) > 0 if result.data else False
+        except Exception as e:
+            print(f"❌ [Supabase] Error checking if entry exists for task_id {task_id}: {str(e)}")
+            raise
+    
+    @staticmethod
+    async def get_all_entries_by_task_id(task_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all model entries for a given task_id (useful for finding duplicates)
+        
+        Args:
+            task_id: TwelveLabs task ID
+            
+        Returns:
+            List of all model entries for this task_id
+        """
+        try:
+            result = supabase.table("model_entries").select("*").eq("task_id", task_id).order("created_at", desc=True).execute()
+            return result.data or []
+        except Exception as e:
+            print(f"❌ [Supabase] Error fetching entries by task_id {task_id}: {str(e)}")
+            raise
+    
+    @staticmethod
     async def update_entry(
         entry_id: str,
         updates: Dict[str, Any]

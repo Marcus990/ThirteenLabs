@@ -91,4 +91,4 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 
 # Start the FastAPI server in the foreground
-python3 -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 
+python3 -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 --limit-max-requests 1000 --limit-concurrency 1000 

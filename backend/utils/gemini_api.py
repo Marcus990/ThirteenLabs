@@ -71,14 +71,19 @@ class GeminiAPI:
             
             parts: List[Dict[str, Any]] = [{
                 "text": f"""
-                You are a senior Three.js engineer. Based on the following object description and four reference images (top, front, side, back), generate clean, modular Three.js code to reconstruct the object in 3D.
+                You are a senior Three.js engineer. Based on the following object and motion description and four reference images (top, front, side, back), generate clean, modular Three.js code to reconstruct the object in 3D, including animated motion if applicable.
 
                 Description:
                 {description}
 
                 Output Requirements:
                 - Output **only** valid Three.js code in **JavaScript ES6 module style** — no HTML, comments, or explanatory text.
-                - The code must be **self-contained** and export a single `THREE.Group()` named `model` using `export model;` at the end.
+                - The code must be **self-contained** and export a single `THREE.Group()` named `model` using `export {{ model }};` at the end.
+                - If the object is animated, include appropriate `THREE.AnimationClip` and `THREE.AnimationMixer` setup inside the code to animate the model group using keyframe tracks.
+                - Define all keyframe tracks (position, rotation, scale) based on motion details described (e.g., translation, rotation, trajectory, speed, duration).
+                - Do not create an AnimationMixer inside the code. Instead, define any THREE.AnimationClip instances as needed and assign them to model.userData.clips = [ ... ]. The rendering engine will create the AnimationMixer externally and play these clips. Example output:
+                model.userData.clips = [translationClip, rotationClip];
+                export {{ model }};
 
                 Geometry and Structure:
                 - Use only basic geometry primitives from Three.js: `BoxGeometry`, `CylinderGeometry`, `SphereGeometry`, `TubeGeometry`, `ExtrudeGeometry`, `PlaneGeometry`, etc.
@@ -94,10 +99,16 @@ class GeminiAPI:
                 - Scale the model to fit within a camera view positioned 10–15 units away.
                 - Use reasonable real-world proportions based on the description and reference views.
 
+                Motion Rendering (if motion is present in the description):
+                - Detect and implement animation if the description includes any movement types (e.g., rolling, tilting, bouncing, rotating).
+                - Animate the model or subcomponents based on the described motion type, direction, duration, and trajectory.
+                - If the motion is continuous or repetitive, use looping keyframe animations. If it's a one-time motion, animate once on load.
+                - Represent translation (position), rotation (Euler angles or quaternion), or scaling as keyframe tracks in the animation.
+                - Example: If the object rolls forward 3 meters in 2 seconds, create a `VectorKeyframeTrack` animating the `position.z` from 0 to 3 over 2 seconds.
+
                 Constraints:
                 - Do **not** include HTML, CSS, import statements, or scene/camera setup.
-                - Do **not** include comments or explanation — only the pure Three.js JavaScript code for the model.
-
+                - Do **not** include comments or explanation — only the pure Three.js JavaScript code for the model and animation.
                 """
             }]
 
@@ -136,7 +147,7 @@ class GeminiAPI:
 
             url = f"{self.base_url}?key={self.api_key}"
 
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=300.0) as client:
                 print(f"🌐 Sending POST request to Gemini...")
                 response = await client.post(url, json=payload)
 

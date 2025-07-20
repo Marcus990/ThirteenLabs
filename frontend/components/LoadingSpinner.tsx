@@ -31,9 +31,20 @@ export default function LoadingSpinner({ progress = 0, message = "Processing you
         {/* Center Icon */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+            {/* 3D Cube Icon */}
+            <div className="w-6 h-6 relative animate-pulse">
+              {/* Cube faces */}
+              <div className="absolute inset-0 transform rotate-45">
+                {/* Front face */}
+                <div className="absolute inset-0 bg-white rounded-sm"></div>
+                
+                {/* Right face */}
+                <div className="absolute inset-0 bg-white bg-opacity-80 rounded-sm transform rotate-y-45 origin-left"></div>
+                
+                {/* Top face */}
+                <div className="absolute inset-0 bg-white bg-opacity-60 rounded-sm transform rotate-x-45 origin-bottom"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -60,10 +71,10 @@ export default function LoadingSpinner({ progress = 0, message = "Processing you
         <div className="space-y-3">
           {[
             { threshold: 0, text: "Video uploaded" },
-            { threshold: 20, text: "Analyzing video content" },
-            { threshold: 40, text: "Generating 3D models" },
-            { threshold: 60, text: "Creating game mechanics" },
-            { threshold: 80, text: "Finalizing your game" },
+            { threshold: 20, text: "Indexing video" },
+            { threshold: 40, text: "Analyzing video content" },
+            { threshold: 60, text: "Generating 3D models" },
+            { threshold: 80, text: "Adding in motion" },
           ].map(({ threshold, text }) => (
             <div className="flex items-center space-x-3" key={text}>
               <div

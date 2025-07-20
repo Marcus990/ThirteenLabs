@@ -21,7 +21,7 @@ from utils.supabase_client import SupabaseManager
 
 app = FastAPI(title="Thirteen Labs API", version="1.0.0")
 
-# CORS middleware for frontend communication
+# Configure for larger file uploads
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # React dev server
@@ -36,6 +36,7 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 # Mount static files
 app.mount("/photos", StaticFiles(directory="photos"), name="photos")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.post("/upload_video")
 async def upload_video(video: UploadFile = File(...), background_tasks: BackgroundTasks = None):
@@ -43,14 +44,19 @@ async def upload_video(video: UploadFile = File(...), background_tasks: Backgrou
     Upload a video file, validate it, save locally, and upload to Twelve Labs
     """
     # Validate file type
-    if not video.filename or not video.filename.lower().endswith('.mp4'):
-        raise HTTPException(status_code=400, detail="Only MP4 files are supported")
+    if not video.filename or not video.filename.lower().endswith(('.mp4', '.mov')):
+        raise HTTPException(status_code=400, detail="Only MP4 and MOV files are supported")
     
     if not video.content_type or not video.content_type.startswith('video/'):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload a video file")
     
+    # Validate file size (max 500MB)
+    if video.size and video.size > 500 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size must be less than 500MB")
+    
     # Generate unique filename
-    unique_filename = f"{uuid.uuid4()}.mp4"
+    original_extension = Path(video.filename).suffix.lower() if video.filename else '.mp4'
+    unique_filename = f"{uuid.uuid4()}{original_extension}"
     video_path = UPLOAD_DIR / unique_filename
     
     try:
@@ -178,7 +184,13 @@ async def get_result(task_id: str):
         if result.get("status") != "completed":
             raise HTTPException(status_code=400, detail="Task not completed yet")
         
-        # Save to Supabase
+        # Check if entry already exists for this task_id to prevent duplicates
+        existing_entry = await SupabaseManager.get_entry_by_task_id(task_id)
+        if existing_entry:
+            print(f"✅ [API] Entry already exists for task {task_id}, returning existing entry")
+            return await get_result_from_entry(existing_entry.get('id'))
+        
+        # Save to Supabase only if entry doesn't exist
         try:
             description = result.get("description", "")
             
@@ -269,10 +281,17 @@ async def generate_3d_model_from_entry(entry_id: str):
     Generate 3D model using Gemini API based on database entry
     """
     try:
-        # Get the entry from database
+        # First try to get by entry ID (UUID)
         entry = await SupabaseManager.get_entry_by_id(entry_id)
         if not entry:
-            raise HTTPException(status_code=404, detail="Entry not found")
+            # If not found by UUID, try to get by task_id
+            print(f"🔍 [API] Entry not found by UUID {entry_id}, trying task_id...")
+            entry = await SupabaseManager.get_entry_by_task_id(entry_id)
+            if not entry:
+                raise HTTPException(status_code=404, detail="Entry not found")
+            else:
+                # Use the actual entry ID for updates
+                entry_id = entry.get("id")
         
         # Extract data for Gemini
         description = entry.get("description", "")
@@ -313,7 +332,57 @@ async def generate_3d_model_from_entry(entry_id: str):
         raise
     except Exception as e:
         print(f"❌ [API] Error generating 3D model for entry {entry_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating 3D model: {str(e)}")
+        # If it's a UUID format error, try getting by task_id instead
+        if "invalid input syntax for type uuid" in str(e):
+            print(f"🔍 [API] UUID format error, trying task_id instead...")
+            try:
+                entry = await SupabaseManager.get_entry_by_task_id(entry_id)
+                if not entry:
+                    raise HTTPException(status_code=404, detail="Entry not found")
+                
+                # Use the actual entry ID for updates
+                actual_entry_id = entry.get("id")
+                
+                # Extract data for Gemini
+                description = entry.get("description", "")
+                image_urls = entry.get("image_urls", [])
+                
+                if not description:
+                    raise HTTPException(status_code=400, detail="No description available")
+                
+                if not image_urls:
+                    raise HTTPException(status_code=400, detail="No screenshots available")
+                
+                # Convert image_urls array to screenshots object
+                screenshots = {}
+                if len(image_urls) >= 4:
+                    screenshots = {
+                        "front": image_urls[0] if len(image_urls) > 0 else None,
+                        "side": image_urls[1] if len(image_urls) > 1 else None,
+                        "back": image_urls[2] if len(image_urls) > 2 else None,
+                        "top": image_urls[3] if len(image_urls) > 3 else None
+                    }
+                
+                # Generate 3D model using Gemini
+                gemini_api = GeminiAPI()
+                threejs_code = await gemini_api.generate_threejs_code(description, screenshots)
+                
+                # Update the entry with Three.js code
+                await SupabaseManager.update_entry(actual_entry_id, {"threejs_code": threejs_code})
+                print(f"✅ [API] Updated Supabase entry {actual_entry_id} with Three.js code")
+                
+                return JSONResponse({
+                    "entry_id": actual_entry_id,
+                    "threejs_code": threejs_code,
+                    "status": "success",
+                    "message": "3D model generated successfully"
+                })
+                
+            except Exception as task_id_error:
+                print(f"❌ [API] Error generating by task_id {entry_id}: {str(task_id_error)}")
+                raise HTTPException(status_code=500, detail=f"Error generating 3D model: {str(task_id_error)}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Error generating 3D model: {str(e)}")
 
 @app.get("/job_status/{job_id}")
 async def get_job_status_endpoint(job_id: str):
@@ -453,16 +522,38 @@ async def get_model_entry(entry_id: str):
     Get a specific model entry by ID
     """
     try:
+        # First try to get by entry ID (UUID)
         entry = await SupabaseManager.get_entry_by_id(entry_id)
-        if not entry:
-            raise HTTPException(status_code=404, detail="Model entry not found")
+        if entry:
+            return JSONResponse(entry)
         
-        return JSONResponse(entry)
+        # If not found by UUID, try to get by task_id
+        print(f"🔍 [API] Entry not found by UUID {entry_id}, trying task_id...")
+        entry = await SupabaseManager.get_entry_by_task_id(entry_id)
+        if entry:
+            return JSONResponse(entry)
+        
+        # If still not found, return 404
+        raise HTTPException(status_code=404, detail="Model entry not found")
+        
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ [API] Error fetching model entry {entry_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching model entry: {str(e)}")
+        # If it's a UUID format error, try getting by task_id instead
+        if "invalid input syntax for type uuid" in str(e):
+            print(f"🔍 [API] UUID format error, trying task_id instead...")
+            try:
+                entry = await SupabaseManager.get_entry_by_task_id(entry_id)
+                if entry:
+                    return JSONResponse(entry)
+                else:
+                    raise HTTPException(status_code=404, detail="Model entry not found")
+            except Exception as task_id_error:
+                print(f"❌ [API] Error fetching by task_id {entry_id}: {str(task_id_error)}")
+                raise HTTPException(status_code=500, detail=f"Error fetching model entry: {str(task_id_error)}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Error fetching model entry: {str(e)}")
 
 @app.get("/result-from-entry/{entry_id}")
 async def get_result_from_entry(entry_id: str):
@@ -527,7 +618,8 @@ async def get_result_from_entry(entry_id: str):
             "timestamps": timestamps,
             "screenshots": screenshots,
             "threejs_code": entry.get("threejs_code"),
-            "video_id": entry.get("video_url", "")  # Use video_url as video_id
+            "video_id": entry.get("video_url", ""),  # Use video_url as video_id
+            "video_url": entry.get("video_url", "")  # Add separate video_url field
         }
         
         print(f"🔍 [DEBUG] Final result response:")
@@ -578,6 +670,82 @@ async def delete_model_entry(entry_id: str):
     except Exception as e:
         print(f"❌ [API] Error deleting model entry {entry_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error deleting model entry: {str(e)}")
+
+@app.post("/cleanup-duplicates/{task_id}")
+async def cleanup_duplicate_entries(task_id: str):
+    """
+    Clean up duplicate entries for a given task_id, keeping only the most recent one
+    """
+    try:
+        # Get all entries for this task_id
+        entries = await SupabaseManager.get_all_entries_by_task_id(task_id)
+        
+        if len(entries) <= 1:
+            return JSONResponse({
+                "message": f"No duplicates found for task {task_id}",
+                "entries_count": len(entries)
+            })
+        
+        # Keep the most recent entry (first in the list since we ordered by created_at desc)
+        entry_to_keep = entries[0]
+        entries_to_delete = entries[1:]
+        
+        # Delete all duplicate entries
+        deleted_count = 0
+        for entry in entries_to_delete:
+            try:
+                await SupabaseManager.delete_entry(entry.get("id"))
+                deleted_count += 1
+                print(f"🗑️ [API] Deleted duplicate entry {entry.get('id')} for task {task_id}")
+            except Exception as e:
+                print(f"❌ [API] Failed to delete duplicate entry {entry.get('id')}: {str(e)}")
+        
+        return JSONResponse({
+            "message": f"Cleaned up {deleted_count} duplicate entries for task {task_id}",
+            "entries_deleted": deleted_count,
+            "entries_remaining": 1,
+            "kept_entry_id": entry_to_keep.get("id")
+        })
+        
+    except Exception as e:
+        print(f"❌ [API] Error cleaning up duplicates for task {task_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error cleaning up duplicates: {str(e)}")
+
+@app.get("/find-duplicates")
+async def find_duplicate_entries():
+    """
+    Find all duplicate entries across the database
+    """
+    try:
+        # Get all entries
+        all_entries = await SupabaseManager.get_all_entries()
+        
+        # Group entries by task_id
+        task_groups = {}
+        for entry in all_entries:
+            task_id = entry.get("task_id")
+            if task_id:
+                if task_id not in task_groups:
+                    task_groups[task_id] = []
+                task_groups[task_id].append(entry)
+        
+        # Find groups with more than one entry
+        duplicates = {}
+        for task_id, entries in task_groups.items():
+            if len(entries) > 1:
+                duplicates[task_id] = {
+                    "count": len(entries),
+                    "entries": entries
+                }
+        
+        return JSONResponse({
+            "duplicates_found": len(duplicates),
+            "duplicates": duplicates
+        })
+        
+    except Exception as e:
+        print(f"❌ [API] Error finding duplicates: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error finding duplicates: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

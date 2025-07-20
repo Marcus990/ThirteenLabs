@@ -4,7 +4,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 120000, // 120 seconds to match backend timeout
+  timeout: 600000, // 600 seconds (10 minutes)
 });
 
 export interface UploadResponse {
@@ -35,6 +35,7 @@ export interface ResultResponse {
   };
   threejs_code?: string;
   video_id: string;
+  video_url?: string;
 }
 
 export interface GameResponse {
@@ -45,13 +46,19 @@ export interface GameResponse {
   openscad_code?: string;
 }
 
-export const uploadVideo = async (file: File): Promise<UploadResponse> => {
+export const uploadVideo = async (file: File, onProgress?: (progress: number) => void): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('video', file);
 
   const response = await api.post<UploadResponse>('/upload_video', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
+    },
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(progress);
+      }
     },
   });
 

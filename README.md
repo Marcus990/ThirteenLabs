@@ -1,14 +1,14 @@
-# 🚀 ThirteenLabs - AI Video to 3D Game Converter
+# 🚀 ThirteenLabs - AI Video to Interactive 3D Experience Converter
 
-Transform your videos into fully playable 3D games using advanced AI technology. Upload a video and watch as our AI creates an interactive 3D experience in minutes.
+Transform any video into an interactive 3D experience using advanced AI technology. Upload a video and watch it become a live, moving 3D model you can explore in real time.
 
 ![ThirteenLabs Demo](https://via.placeholder.com/800x400/8b5cf6/ffffff?text=ThirteenLabs+Demo)
 
 ## ✨ Features
 
 - **🎥 Video Analysis**: Advanced AI analyzes your video to identify objects and actions
-- **🎨 3D Generation**: AI creates detailed 3D models from video content
-- **🎮 Game Creation**: Instantly generate interactive 3D games with physics and controls
+- **🎨 3D Reconstruction**: AI creates detailed 3D models from video content
+- **🎮 Interactive Experience**: Instantly generate interactive 3D experiences with real-time rendering
 - **⚡ Real-time Processing**: Fast processing pipeline with progress tracking
 - **🎯 Professional Quality**: High-quality 3D rendering with modern graphics
 
@@ -78,18 +78,17 @@ OPENAI_API_KEY=your_openai_key
 ## 📋 Video Requirements
 
 - **Duration**: 4 seconds to 10 minutes
-- **Format**: MP4 files only
-- **Size**: Maximum 100MB
+- **Format**: MP4 and MOV files
+- **Size**: Maximum 500MB
 - **Content**: Clear main object visible throughout the video
 
 ## 🎮 How It Works
 
-1. **Upload Video** - Upload your MP4 video through the web interface
+1. **Upload Video** - Upload your MP4 or MOV video through the web interface
 2. **AI Analysis** - Twelve Labs AI analyzes the video content
-3. **3D Generation** - GPT models generate OpenSCAD code for 3D objects
-4. **Model Conversion** - OpenSCAD code is converted to GLTF format
-5. **Game Creation** - Three.js game is generated with interactive controls
-6. **Play** - Enjoy your custom 3D game!
+3. **3D Generation** - GPT models generate Three.js code for 3D objects
+4. **Model Creation** - Interactive 3D experience is generated with real-time controls
+5. **Explore** - Enjoy your custom interactive 3D experience!
 
 ## 🏗 Project Structure
 
@@ -161,7 +160,7 @@ docker-compose up --build
 - `GET /game/{job_id}` - Get generated game
 - `GET /health` - Health check
 
-## 🎨 Customization
+## 🎮 Customization
 
 ### Styling
 The frontend uses Tailwind CSS with a custom color scheme:

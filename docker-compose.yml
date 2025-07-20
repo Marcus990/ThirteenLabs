@@ -22,7 +22,7 @@ services:
       - ./uploads:/app/uploads
     depends_on:
       - redis
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload --limit-max-requests 1000 --limit-concurrency 1000
 
   celery-worker:
     build:
