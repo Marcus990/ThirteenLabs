@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Stream Recorder</title>
+    <style>
+        body {
+      margin: 0;
+            padding: 20px;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .status-panel {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .video-container {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .controls {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .btn.recording {
+            background: #dc3545;
+        }
+        
+        .btn.recording:hover {
+            background: #c82333;
+        }
+        
+        .status {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        #videoCanvas {
+            border: 1px solid #333;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .download-section {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .download-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .download-link:hover {
+            text-decoration: underline;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Stream Recorder</h1>
+        
+        <div class="status-panel">
+            <div class="status" id="status">Status: Connecting...</div>
+            <div class="stats">
+                <span id="frameCounter">Frames received: 0</span>
+                <span id="recordingTime">Recording time: 00:00</span>
+                <span id="fileSize">File size: 0 MB</span>
+            </div>
+        </div>
+        
+        <div class="video-container">
+            <canvas id="videoCanvas" width="300" height="300"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button id="connectBtn" class="btn">Connect</button>
+            <button id="recordBtn" class="btn" disabled>Start Recording</button>
+            <button id="stopBtn" class="btn" disabled>Stop Recording</button>
+            <button id="downloadBtn" class="btn" disabled>Download MP4</button>
+        </div>
+        
+        <div class="download-section" id="downloadSection" style="display: none;">
+            <h3>Recording Complete!</h3>
+            <p>Converting to MP4 format...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p id="conversionStatus">Processing...</p>
+            <a id="downloadLink" class="download-link" download="recorded_video.mp4" style="display: none;">Download MP4 Video</a>
+    </div>
+    </div>
+
+    <script>
+        class VideoRecorder {
+            constructor() {
+                this.ws = null;
+                this.mediaRecorder = null;
+                this.recordedChunks = [];
+                this.isRecording = false;
+                this.isConnected = false;
+                this.frameCount = 0;
+                this.startTime = 0;
+                this.recordingInterval = null;
+                
+                this.canvas = document.getElementById('videoCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.statusDiv = document.getElementById('status');
+                this.frameCounterDiv = document.getElementById('frameCounter');
+                this.recordingTimeDiv = document.getElementById('recordingTime');
+                this.fileSizeDiv = document.getElementById('fileSize');
+                
+                this.connectBtn = document.getElementById('connectBtn');
+                this.recordBtn = document.getElementById('recordBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.downloadSection = document.getElementById('downloadSection');
+                this.downloadLink = document.getElementById('downloadLink');
+                this.progressFill = document.getElementById('progressFill');
+                this.conversionStatus = document.getElementById('conversionStatus');
+                
+                this.setupEventListeners();
+                this.checkCodecSupport();
+            }
+            
+            setupEventListeners() {
+                this.connectBtn.addEventListener('click', () => this.connect());
+                this.recordBtn.addEventListener('click', () => this.startRecording());
+                this.stopBtn.addEventListener('click', () => this.stopRecording());
+                this.downloadBtn.addEventListener('click', () => this.downloadVideo());
+            }
+            
+            checkCodecSupport() {
+                // Check for H.264 support for MP4
+                const h264Support = MediaRecorder.isTypeSupported('video/mp4;codecs=h264');
+                const webmSupport = MediaRecorder.isTypeSupported('video/webm;codecs=vp9');
+                
+                console.log('H.264 support:', h264Support);
+                console.log('VP9 support:', webmSupport);
+                
+                this.supportedCodec = h264Support ? 'video/mp4;codecs=h264' : 
+                                    webmSupport ? 'video/webm;codecs=vp9' : 
+                                    'video/webm';
+            }
+            
+            connect() {
+                if (this.isConnected) {
+                    this.disconnect();
+                    return;
+                }
+                
+                this.connectBtn.textContent = 'Connecting...';
+                this.connectBtn.disabled = true;
+                
+                this.ws = new WebSocket("ws://qnxpi-andrew.local:8080/");
+                
+                this.ws.onopen = () => {
+        console.log("WebSocket connection established.");
+                    this.isConnected = true;
+                    this.statusDiv.textContent = "Status: Connected";
+                    this.connectBtn.textContent = 'Disconnect';
+                    this.connectBtn.disabled = false;
+                    this.recordBtn.disabled = false;
+      };
+      
+                this.ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+                    this.statusDiv.textContent = "Status: Connection Error";
+                    this.connectBtn.textContent = 'Connect';
+                    this.connectBtn.disabled = false;
+      };
+      
+                this.ws.onclose = (event) => {
+        console.log("WebSocket closed:", event.code, event.reason);
+                    this.isConnected = false;
+                    this.statusDiv.textContent = "Status: Disconnected";
+                    this.connectBtn.textContent = 'Connect';
+                    this.connectBtn.disabled = false;
+                    this.recordBtn.disabled = true;
+                    this.stopRecording();
+                };
+                
+                this.ws.onmessage = ({ data }) => {
+                    this.handleFrame(data);
+                };
+            }
+            
+            disconnect() {
+                if (this.ws) {
+                    this.ws.close();
+                }
+                this.isConnected = false;
+                this.connectBtn.textContent = 'Connect';
+                this.connectBtn.disabled = false;
+                this.recordBtn.disabled = true;
+                this.stopRecording();
+            }
+            
+            handleFrame(data) {
+                this.frameCount++;
+                this.frameCounterDiv.textContent = `Frames received: ${this.frameCount}`;
+      
+                // Convert base64 bitmap to image and draw on canvas
+                this.drawFrame(data);
+            }
+            
+            drawFrame(base64Data) {
+                const img = new Image();
+                img.onload = () => {
+                    // Clear canvas
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Calculate aspect ratio to maintain proportions
+                    const aspectRatio = img.width / img.height;
+                    let drawWidth = this.canvas.width;
+                    let drawHeight = this.canvas.height;
+                    
+                    if (aspectRatio > 1) {
+                        drawHeight = drawWidth / aspectRatio;
+                    } else {
+                        drawWidth = drawHeight * aspectRatio;
+                    }
+                    
+                    // Center the image
+                    const x = (this.canvas.width - drawWidth) / 2;
+                    const y = (this.canvas.height - drawHeight) / 2;
+                    
+                    this.ctx.drawImage(img, x, y, drawWidth, drawHeight);
+                };
+                
+                // Try different image formats
+                const formats = [
+                    `data:image/bmp;base64,${base64Data}`,
+                    `data:image/jpeg;base64,${base64Data}`,
+                    `data:image/png;base64,${base64Data}`
+                ];
+                
+                let formatIndex = 0;
+      img.onerror = () => {
+                    formatIndex++;
+                    if (formatIndex < formats.length) {
+                        img.src = formats[formatIndex];
+                    } else {
+                        console.error("Failed to load image in any format");
+                    }
+                };
+                
+                img.src = formats[0];
+            }
+            
+            startRecording() {
+                if (!this.isConnected) return;
+                
+                this.recordedChunks = [];
+                this.isRecording = true;
+                this.startTime = Date.now();
+                
+                // Create MediaRecorder with canvas stream
+                const stream = this.canvas.captureStream(30); // 30 FPS
+                
+                try {
+                    this.mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: this.supportedCodec
+                    });
+                } catch (e) {
+                    console.warn('Preferred codec not supported, using default');
+                    this.mediaRecorder = new MediaRecorder(stream);
+                }
+                
+                this.mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        this.recordedChunks.push(event.data);
+                        this.updateFileSize();
+                    }
+                };
+                
+                this.mediaRecorder.onstop = () => {
+                    this.createVideoBlob();
+                };
+                
+                this.mediaRecorder.start(1000); // Collect data every second
+                
+                // Update recording time
+                this.recordingInterval = setInterval(() => {
+                    this.updateRecordingTime();
+                }, 1000);
+                
+                this.recordBtn.textContent = 'Recording...';
+                this.recordBtn.classList.add('recording');
+                this.recordBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.statusDiv.textContent = "Status: Recording...";
+            }
+            
+            stopRecording() {
+                if (!this.isRecording) return;
+                
+                this.isRecording = false;
+                
+                if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                    this.mediaRecorder.stop();
+                }
+                
+                if (this.recordingInterval) {
+                    clearInterval(this.recordingInterval);
+                    this.recordingInterval = null;
+                }
+                
+                this.recordBtn.textContent = 'Start Recording';
+                this.recordBtn.classList.remove('recording');
+                this.recordBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.statusDiv.textContent = "Status: Recording stopped";
+            }
+            
+            updateRecordingTime() {
+                if (!this.startTime) return;
+                
+                const elapsed = Date.now() - this.startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                this.recordingTimeDiv.textContent = `Recording time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            updateFileSize() {
+                const totalSize = this.recordedChunks.reduce((size, chunk) => size + chunk.size, 0);
+                const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+                this.fileSizeDiv.textContent = `File size: ${sizeMB} MB`;
+            }
+            
+            async createVideoBlob() {
+                this.downloadSection.style.display = 'block';
+                this.conversionStatus.textContent = 'Processing video...';
+        
+                // Simulate conversion progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 10;
+                    this.progressFill.style.width = `${progress}%`;
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                        this.finalizeVideo();
+                    }
+                }, 100);
+            }
+            
+            finalizeVideo() {
+                const blob = new Blob(this.recordedChunks, { type: this.supportedCodec.includes('mp4') ? 'video/mp4' : 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                
+                this.downloadLink.href = url;
+        
+                // Set appropriate file extension based on codec
+                const fileExtension = this.supportedCodec.includes('mp4') ? 'mp4' : 'webm';
+                this.downloadLink.download = `recorded_video_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${fileExtension}`;
+                
+                this.conversionStatus.textContent = this.supportedCodec.includes('mp4') ? 
+                    'MP4 video ready for download!' : 
+                    'WebM video ready for download! (MP4 not supported in this browser)';
+                
+                this.downloadLink.style.display = 'inline';
+                this.downloadBtn.disabled = false;
+                
+                this.statusDiv.textContent = "Status: Video ready for download";
+            }
+            
+            downloadVideo() {
+                this.downloadLink.click();
+            }
+        }
+        
+        // Initialize the video recorder when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new VideoRecorder();
+        });
+    </script>
+  </body>
+</html>
