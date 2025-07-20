@@ -2,7 +2,7 @@
 
 Transform any video into an interactive 3D experience using advanced AI technology. Upload a video and watch it become a live, moving 3D model you can explore in real time.
 
-![ThirteenLabs Demo](https://via.placeholder.com/800x400/8b5cf6/ffffff?text=ThirteenLabs+Demo)
+![ThirteenLabs Demo](https://youtu.be/i_b2p0VrURA)
 
 ## ✨ Features
 
