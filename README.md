@@ -2,6 +2,12 @@
 
 Transform any video into a live, animated 3D model using advanced AI — all in real-time, fully automated, and playable in the browser.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/95531432-f872-4d4f-9b11-e97c10f1645c" width="30%" />
+  <img src="https://github.com/user-attachments/assets/54c96259-7adb-4af7-bab7-1b62e10d31b6" width="30%" />
+  <img src="https://github.com/user-attachments/assets/c5914c0c-ab69-4941-b5b5-652095b4a46f" width="30%" />
+</p>
+
 ---
 
 ## ▶️ Extended Demo
