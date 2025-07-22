@@ -2,8 +2,8 @@
 
 Transform any video into a live, animated 3D model using advanced AI — all in real-time, fully automated, and playable in the browser.
 
-Demo:
-[YouTube](https://youtu.be/i_b2p0VrURA)
+Extended Demo:
+[YouTube](https://youtu.be/aazbH6jsu_s)
 
 ---
 
