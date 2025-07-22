@@ -51,7 +51,7 @@ Built for creators, engineers, educators, and game developers, this tool transfo
 ### 🧠 Backend
 - **FastAPI** — REST API server
 - **Twelve Labs API** — Video intelligence (motion + object detection)
-- **Gemini / GPT-4o** — 3D model & animation code generation
+- **Gemini** — 3D model & animation code generation
 - **FFmpeg** — Video preprocessing and frame slicing
 
 ---
@@ -74,7 +74,8 @@ Built for creators, engineers, educators, and game developers, this tool transfo
 - **Node.js 16+**
 - API keys for:
   - [Twelve Labs](https://docs.twelvelabs.io/)
-  - [Gemini](https://ai.google.dev) or OpenAI
+  - [Gemini](https://ai.google.dev)
+  - [Supabase](https://supabase.com/)
 
 ### 1. Clone the Repository
 
