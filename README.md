@@ -101,6 +101,7 @@ npm install
 npm run dev
 ```
 
+You can also choose to run ./start.sh for easier setup in both the frontend and backend directories.
 Open your browser at [http://localhost:3000](http://localhost:3000)
 
 ---
@@ -110,8 +111,22 @@ Open your browser at [http://localhost:3000](http://localhost:3000)
 Create a `.env` file in `backend/`:
 
 ```env
-TWELVE_LABS_API_KEY=your_twelve_labs_key
-OPENAI_API_KEY=your_openai_or_gemini_key
+# API Keys
+TWL_API_KEY=
+TWL_INDEX_ID=
+GEMINI_API_KEY=
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+
+# File Upload Configuration
+MAX_FILE_SIZE=104857600  # 100MB in bytes
+UPLOAD_DIR=uploads 
+
+# Database Configuration
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 ---
@@ -121,14 +136,19 @@ OPENAI_API_KEY=your_openai_or_gemini_key
 ```
 thirteenlabs/
 ├── backend/
-│   ├── main.py             # FastAPI app
-│   ├── video_processing/   # FFmpeg and Twelve Labs utils
-│   ├── ai_generation/      # Gemini or OpenAI 3D model logic
-│   └── .env                # API keys
+│   ├── main.py
+│   ├── utils/    
+│   ├── photos/
+│   ├── uploads/  
+│   └── .env
+│   └── .requirements.txt
+│   └── Dockerfile           
 ├── frontend/
-│   ├── pages/              # Next.js routes
-│   ├── components/         # React + Three.js views
-│   └── public/demo-assets/ # Images for README
+│   ├── pages/           
+│   ├── components/ 
+│   └── lib/
+│   └── styles/
+│   └── types/
 └── README.md
 ```
 
