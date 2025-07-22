@@ -12,9 +12,11 @@ Transform any video into a live, animated 3D model using advanced AI — all in 
 
 ## ▶️ Extended Demo
 
-<a href="https://youtu.be/aazbH6jsu_s" target="_blank">
-  <img src="https://github.com/user-attachments/assets/e763026c-5bd0-40be-a61e-b4a9e28e57c6" width="90%" />
-</a>
+<div align="center">
+  <a href="https://youtu.be/aazbH6jsu_s" target="_blank" rel="noopener noreferrer">
+    <img src="https://github.com/user-attachments/assets/e763026c-5bd0-40be-a61e-b4a9e28e57c6" width="90%" alt="Watch the demo video on YouTube" />
+  </a>
+</div>
 
 ---
 
