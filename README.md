@@ -53,6 +53,7 @@ Built for creators, engineers, educators, and game developers, this tool transfo
 - **Twelve Labs API** — Video intelligence (motion + object detection)
 - **Gemini** — 3D model & animation code generation
 - **FFmpeg** — Video preprocessing and frame slicing
+- **Moviepy** - Video verification
 
 ---
 
@@ -159,7 +160,7 @@ thirteenlabs/
 
 | Property      | Requirement             |
 |---------------|--------------------------|
-| Duration      | 4–10 seconds             |
+| Duration      | 4–10 minutes             |
 | Format        | MP4 or MOV               |
 | Size          | ≤ 500MB                  |
 | Subject       | Clearly visible in frame |
