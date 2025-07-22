@@ -2,6 +2,8 @@
 
 Transform any video into a live, animated 3D model using advanced AI — all in real-time, fully automated, and playable in the browser.
 
+<img width="1920" height="1080" alt="Thirteen Labs Thumbnail" src="https://github.com/user-attachments/assets/8a3108ed-f5ff-46ce-a887-aa006754dcf8" />
+
 Extended Demo:
 [YouTube](https://youtu.be/aazbH6jsu_s)
 
