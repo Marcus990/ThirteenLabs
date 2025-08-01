@@ -1,6 +1,5 @@
 uploads/
 photos/
-!photos/.gitkeep
 backend/photos/
 !backend/photos/.gitkeep
 
