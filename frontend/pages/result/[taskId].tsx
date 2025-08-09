@@ -214,12 +214,12 @@ export default function ResultPage() {
 
       <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Sidebar */}
-        <div className="w-80 fixed top-0 bottom-0 left-0 z-40">
-          <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
+        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} fixed top-0 bottom-0 left-0 z-40`}>
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-80">
+        <div className={`flex-1 ${sidebarOpen ? 'ml-80 ' : 'lg:ml-80'}`}>
           {/* Header */}
           <header className="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -288,7 +288,7 @@ export default function ResultPage() {
               </div>
             )}
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="lg:grid lg:grid-cols-2 flex flex-col-reverse gap-8">
               {/* Object Description */}
               <div className="bg-white bg-opacity-5 backdrop-blur-sm rounded-2xl p-8 border border-white border-opacity-10">
                 <div className="flex items-center mb-6">
@@ -297,7 +297,7 @@ export default function ResultPage() {
                   </div>
                   <h2 className="text-2xl font-bold text-white">Object Description</h2>
                 </div>
-                <p className="text-gray-200 leading-relaxed text-lg">
+                <p className="text-gray-200 leading-relaxed text-base">
                   {result.description}
                 </p>
               </div>

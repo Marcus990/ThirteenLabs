@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GLTF/GLB Viewer • three.js</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #app { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr; background: #0b0e14; color: #e5e7eb; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    header { display: flex; gap: .75rem; align-items: center; padding: .6rem .8rem; border-bottom: 1px solid #1f2937; background: #0f131b; }
+    header h1 { font-size: 0.95rem; margin: 0; font-weight: 600; color: #cbd5e1; }
+    header .spacer { flex: 1; }
+    header .btn { appearance: none; border: 1px solid #374151; background: #111827; color: #e5e7eb; border-radius: .5rem; padding: .45rem .7rem; cursor: pointer; font-size: .9rem; }
+    header .btn:hover { background: #0b1220; }
+    header input[type="file"] { display: none; }
+    header label.btn { display: inline-flex; align-items: center; gap: .5rem; }
+    #canvas { width: 100%; height: 100%; display: block; }
+    #overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+    #overlay.hidden { display: none; }
+    .drop { pointer-events: auto; border: 2px dashed #334155; border-radius: 1rem; padding: 2rem 3rem; background: #0b0e1490; color: #cbd5e1; }
+    .hud { position: absolute; left: .75rem; bottom: .75rem; display: flex; gap: .5rem; align-items: center; background: #0b0e1490; border: 1px solid #1f2937; padding: .5rem .6rem; border-radius: .6rem; font-size: .85rem; }
+    .hud.right { left: auto; right: .75rem; }
+    select, button { background: #111827; color: #e5e7eb; border: 1px solid #374151; border-radius: .5rem; padding: .35rem .5rem; }
+    .hint { opacity: .7; }
+    .pass { color: #22c55e; }
+    .fail { color: #ef4444; }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>three.js GLTF/GLB Viewer</h1>
+      <div class="spacer"></div>
+      <label class="btn" for="file">
+        Load .gltf/.glb
+        <input id="file" type="file" accept=".gltf,.glb,model/gltf-binary,model/gltf+json" />
+      </label>
+      <button id="sampleBtn" class="btn">Load sample</button>
+      <button id="resetCam" class="btn" title="Reset camera">Reset view</button>
+    </header>
+    <div style="position: relative">
+      <canvas id="canvas"></canvas>
+      <div id="overlay" class="hidden">
+        <div class="drop">
+          <div style="font-weight:600; margin-bottom:.25rem">Drop a .gltf/.glb here</div>
+          <div class="hint">or use the button above</div>
+        </div>
+      </div>
+      <div class="hud">
+        <label>Animation: <select id="animSelect"><option value="">(none)</option></select></label>
+        <button id="playPause">Play</button>
+        <span id="fps" class="hint">—</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+    const canvas = document.getElementById('canvas');
+    const overlay = document.getElementById('overlay');
+    const fileInput = document.getElementById('file');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const resetCamBtn = document.getElementById('resetCam');
+    const animSelect = document.getElementById('animSelect');
+    const playPauseBtn = document.getElementById('playPause');
+    const fpsEl = document.getElementById('fps');
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight - 48);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#0b0e14');
+
+    const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 500);
+    camera.position.set(2.5, 1.75, 3.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x334466, 0.5));
+    const dir = new THREE.DirectionalLight(0xffffff, 2.0);
+    dir.position.set(5, 8, 5);
+    scene.add(dir);
+
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x222831 }));
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const grid = new THREE.GridHelper(10, 20, 0x334155, 0x1f2937);
+    scene.add(grid);
+
+    const gltfLoader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderPath('https://unpkg.com/three@0.165.0/examples/jsm/libs/draco/');
+    gltfLoader.setDRACOLoader(draco);
+
+    let mixer = null;
+    let modelRoot = null;
+    let currentAction = null;
+    let lastClips = [];
+    const clock = new THREE.Clock();
+
+    function clearModel() {
+      if (modelRoot) scene.remove(modelRoot);
+      modelRoot = null;
+      mixer = null;
+      currentAction = null;
+      animSelect.innerHTML = '<option value="">(none)</option>';
+    }
+
+    function fitCameraToObject(object, offset = 1.2) {
+      const box = new THREE.Box3().setFromObject(object);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
+      let camZ = Math.abs(maxDim / (2 * Math.tan(fov / 2))) * offset;
+      camZ = Math.min(Math.max(camZ, 2), 50);
+      camera.position.set(center.x + camZ, center.y + camZ * 0.4, center.z + camZ);
+      controls.target.copy(center);
+      controls.update();
+    }
+
+    async function loadModel(input) {
+      clearModel();
+      overlay.classList.add('hidden');
+      let url, revoke = null;
+      if (input instanceof File) { url = URL.createObjectURL(input); revoke = () => URL.revokeObjectURL(url); }
+      else { url = input; }
+      try {
+        const gltf = await gltfLoader.loadAsync(url);
+        modelRoot = gltf.scene;
+        scene.add(modelRoot);
+        fitCameraToObject(modelRoot);
+        lastClips = gltf.animations;
+        if (lastClips.length) {
+          mixer = new THREE.AnimationMixer(modelRoot);
+          animSelect.innerHTML = '';
+          lastClips.forEach((clip, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = clip.name || `Clip ${i+1}`;
+            animSelect.appendChild(opt);
+          });
+          startAction(0);
+        }
+      } finally {
+        revoke?.();
+      }
+    }
+
+    function startAction(index) {
+      if (!mixer || !lastClips.length) return;
+      const clip = lastClips[index];
+      if (!clip) return;
+      if (currentAction) currentAction.stop();
+      currentAction = mixer.clipAction(clip);
+      currentAction.reset().play();
+      playPauseBtn.textContent = 'Pause';
+    }
+
+    function togglePlay() {
+      if (!currentAction) return;
+      currentAction.paused = !currentAction.paused;
+      playPauseBtn.textContent = currentAction.paused ? 'Play' : 'Pause';
+    }
+
+    fileInput.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) loadModel(f); });
+    sampleBtn.addEventListener('click', () => loadModel('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb'));
+    animSelect.addEventListener('change', () => startAction(Number(animSelect.value)));
+    playPauseBtn.addEventListener('click', togglePlay);
+
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight - 48;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    ['dragenter','dragover'].forEach(evt => document.addEventListener(evt, e => { e.preventDefault(); overlay.classList.remove('hidden'); }));
+    ['dragleave','drop'].forEach(evt => document.addEventListener(evt, e => { e.preventDefault(); overlay.classList.add('hidden'); }));
+    document.addEventListener('drop', e => { const file = e.dataTransfer?.files?.[0]; if (file) loadModel(file); });
+
+    function animate() {
+      const dt = clock.getDelta();
+      mixer?.update(dt);
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
