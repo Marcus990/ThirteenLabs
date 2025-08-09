@@ -85,6 +85,63 @@ export async function exportModelAsGLTFEmbeddedFromCode(
   });
 }
 
+// Export model including animations if present on model.userData.clips
+export async function exportAnimatedModelAsGLBFromCode(
+  threejsCode: string,
+  filename: string = 'model-animated.glb'
+): Promise<void> {
+  const exporter = await createGLTFExporter();
+  const model = buildModelFromCode(threejsCode);
+
+  // Collect animations from userData.clips if available
+  const animations = Array.isArray((model as any).userData?.clips)
+    ? (model as any).userData.clips.filter((c: unknown) => c instanceof THREE.AnimationClip)
+    : [];
+
+  return new Promise<void>((resolve, reject) => {
+    exporter.parse(
+      model,
+      (result: ArrayBuffer) => {
+        const blob = new Blob([result], { type: 'model/gltf-binary' });
+        saveBlob(blob, filename);
+        resolve();
+      },
+      (error: unknown) => {
+        reject(error instanceof Error ? error : new Error('Failed to export animated GLB'));
+      },
+      { binary: true, animations }
+    );
+  });
+}
+
+export async function exportAnimatedModelAsGLTFEmbeddedFromCode(
+  threejsCode: string,
+  filename: string = 'model-animated.gltf'
+): Promise<void> {
+  const exporter = await createGLTFExporter();
+  const model = buildModelFromCode(threejsCode);
+
+  const animations = Array.isArray((model as any).userData?.clips)
+    ? (model as any).userData.clips.filter((c: unknown) => c instanceof THREE.AnimationClip)
+    : [];
+
+  return new Promise<void>((resolve, reject) => {
+    exporter.parse(
+      model,
+      (result: unknown) => {
+        const json = JSON.stringify(result, null, 2);
+        const blob = new Blob([json], { type: 'model/gltf+json' });
+        saveBlob(blob, filename);
+        resolve();
+      },
+      (error: unknown) => {
+        reject(error instanceof Error ? error : new Error('Failed to export animated GLTF'));
+      },
+      { binary: false, embedImages: true, includeCustomExtensions: true, animations }
+    );
+  });
+}
+
 // Convenience overloads if a model instance is already available in the future
 export async function exportObjectAsGLB(
   object3D: THREE.Object3D,

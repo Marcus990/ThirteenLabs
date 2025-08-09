@@ -8,7 +8,8 @@ import Logo from '../../components/Logo';
 import { getModelEntry, generate3DModel, ModelEntry } from '../../lib/api';
 import { 
   exportModelAsGLBFromCode, 
-  exportModelAsGLTFEmbeddedFromCode 
+  exportModelAsGLTFEmbeddedFromCode,
+  exportAnimatedModelAsGLBFromCode,
 } from '../../lib/model_export';
 
 export default function ModelPage() {
@@ -193,12 +194,20 @@ export default function ModelPage() {
                           <Play size={16} className="mr-2" />
                           Re-Render Experience
                         </button>
-                  <button
-                    className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                  >
-                          <Download size={16} className="mr-2" />
-                    Download
-                        </button>
+                      <button
+                        onClick={async () => {
+                          if (!entry?.threejs_code) return;
+                          try {
+                            await exportAnimatedModelAsGLBFromCode(entry.threejs_code, `model-${taskId}-animated.glb`);
+                          } catch (e) {
+                            alert(e instanceof Error ? e.message : 'Failed to download animated model');
+                          }
+                        }}
+                        className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                      >
+                        <Download size={16} className="mr-2" />
+                        Download
+                      </button>
                       </div>
                     </div>
                     
@@ -300,6 +309,19 @@ export default function ModelPage() {
                       Export Static Model
                     </button>
                     <button 
+                      onClick={async () => {
+                        if (!entry?.threejs_code) return;
+                        try {
+                          await exportAnimatedModelAsGLBFromCode(entry.threejs_code, `model-${taskId}-animated.glb`);
+                        } catch (e) {
+                          alert(e instanceof Error ? e.message : 'Failed to download animated model');
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    >
+                      Export Animated Model
+                    </button>
+                    <button 
                       onClick={() => {
                         if (!entry?.threejs_code) return;
                         try {
@@ -320,19 +342,7 @@ export default function ModelPage() {
                     >
                       Download Three.js Code
                     </button>
-                    <button 
-                      onClick={async () => {
-                        if (!entry?.threejs_code) return;
-                        try {
-                          await exportModelAsGLBFromCode(entry.threejs_code, `assets-${taskId}.glb`);
-                        } catch (e) {
-                          alert(e instanceof Error ? e.message : 'Failed to download assets');
-                        }
-                      }}
-                      className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                    >
-                      Download Assets
-                    </button>
+                    
                   </div>
                 </div>
               </div>
