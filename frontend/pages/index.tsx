@@ -69,12 +69,12 @@ export default function HomePage() {
 
       <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Sidebar */}
-        <div className="w-80 fixed top-0 bottom-0 left-0 z-40">
-          <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
+        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} fixed top-0 bottom-0 left-0 z-40`}>
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-80">
+        <div className={`flex-1 ${sidebarOpen ? 'ml-80 ' : 'lg:ml-80'}`}>
           {/* Header */}
           <header className="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

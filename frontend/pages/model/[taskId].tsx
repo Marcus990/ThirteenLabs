@@ -6,6 +6,10 @@ import Sidebar from '../../components/Sidebar';
 import ThreeJSRenderer from '../../components/ThreeJSRenderer';
 import Logo from '../../components/Logo';
 import { getModelEntry, generate3DModel, ModelEntry } from '../../lib/api';
+import { 
+  exportModelAsGLBFromCode, 
+  exportModelAsGLTFEmbeddedFromCode 
+} from '../../lib/model_export';
 
 export default function ModelPage() {
   const router = useRouter();
@@ -59,10 +63,10 @@ export default function ModelPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="w-80 fixed top-0 bottom-0 left-0 z-40">
-          <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
+        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} fixed top-0 bottom-0 left-0 z-40`}>
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
-        <div className="flex-1 ml-80 flex items-center justify-center">
+        <div className={`flex-1 ${sidebarOpen ? 'ml-80 ' : 'lg:ml-80'} flex items-center justify-center`}>
           <div className="text-center">
             <div className="relative w-16 h-16 mx-auto mb-4">
               {/* Spinner Ring Background */}
@@ -101,10 +105,10 @@ export default function ModelPage() {
   if (error || !entry) {
     return (
       <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="w-80 fixed top-0 bottom-0 left-0 z-40">
-          <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
+        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} fixed top-0 bottom-0 left-0 z-40`}>
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
-        <div className="flex-1 ml-80 flex items-center justify-center">
+        <div className={`flex-1 ${sidebarOpen ? 'ml-80 ' : 'lg:ml-80'} flex items-center justify-center`}>
           <div className="text-center">
             <p className="text-red-400 mb-4">{error || 'Entry not found'}</p>
             <button
@@ -128,12 +132,12 @@ export default function ModelPage() {
 
       <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Sidebar */}
-        <div className="w-80 fixed top-0 bottom-0 left-0 z-40">
-          <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
+        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} fixed top-0 bottom-0 left-0 z-40`}>
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-80">
+        <div className={`flex-1 ${sidebarOpen ? 'ml-80 ' : 'lg:ml-80'}`}>
           {/* Header */}
           <header className="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -181,7 +185,7 @@ export default function ModelPage() {
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-semibold text-white">Interactive 3D Experience</h3>
-                      <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4">
                         <button 
                           onClick={() => window.location.reload()}
                           className="flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
@@ -189,9 +193,11 @@ export default function ModelPage() {
                           <Play size={16} className="mr-2" />
                           Re-Render Experience
                         </button>
-                        <button className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                  <button
+                    className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  >
                           <Download size={16} className="mr-2" />
-                          Download
+                    Download
                         </button>
                       </div>
                     </div>
@@ -280,13 +286,51 @@ export default function ModelPage() {
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
                   <h3 className="text-xl font-semibold text-white mb-4">Actions</h3>
                   <div className="space-y-3">
-                    <button className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
-                      Export Model
+                    <button 
+                      onClick={async () => {
+                        if (!entry?.threejs_code) return;
+                        try {
+                          await exportModelAsGLTFEmbeddedFromCode(entry.threejs_code, `model-${taskId}.gltf`);
+                        } catch (e) {
+                          alert(e instanceof Error ? e.message : 'Failed to export GLTF');
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                    >
+                      Export Static Model
                     </button>
-                    <button className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
-                      Share Model
+                    <button 
+                      onClick={() => {
+                        if (!entry?.threejs_code) return;
+                        try {
+                          const blob = new Blob([entry.threejs_code], { type: 'text/plain;charset=utf-8' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `threejs-code-${taskId as string}.js`;
+                          document.body.appendChild(a);
+                          a.click();
+                          URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+                        } catch (e) {
+                          alert(e instanceof Error ? e.message : 'Failed to download Three.js code');
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    >
+                      Download Three.js Code
                     </button>
-                    <button className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                    <button 
+                      onClick={async () => {
+                        if (!entry?.threejs_code) return;
+                        try {
+                          await exportModelAsGLBFromCode(entry.threejs_code, `assets-${taskId}.glb`);
+                        } catch (e) {
+                          alert(e instanceof Error ? e.message : 'Failed to download assets');
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    >
                       Download Assets
                     </button>
                   </div>
