@@ -1,6 +1,6 @@
 # 🚀 ThirteenLabs — From Video ➡️ Interactive 3D Scene
 
-🏆 Best Developer Tool (Warp) & Best Use of TwelveLabs API @ Hack the 6ix 2025
+<b>🏆 Best Developer Tool (Warp) & Best Use of TwelveLabs API @ Hack the 6ix 2025</b>
 
 Transform any video into a live, animated 3D model using advanced AI — all in real-time, fully automated, and playable in the browser.
 
