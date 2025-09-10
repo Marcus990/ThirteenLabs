@@ -1,4 +1,4 @@
-# 🚀 Thirteen Labs — From Video ➡️ Interactive 3D Scene
+# 🚀 ThirteenLabs — From Video ➡️ Interactive 3D Scene
 
 🏆 Best Developer Tool (Warp) & Best Use of TwelveLabs API @ Hack the 6ix 2025
 
